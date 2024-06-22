@@ -24,9 +24,10 @@ class GameObject:
 
     def rotate(self, degrees):
         original_center = self.base_rect.center
-        self.base_surface = pg.transform.rotate(self.original_surface, degrees + self.orientation)
+        self.base_surface = pg.transform.rotate(self.original_surface, degrees + self.orientation.as_polar()[1])
         self.base_rect = self.base_surface.get_rect(center=original_center)
-        self.orientation = abs((self.orientation + degrees) % 360)
+        self.orientation.rotate_ip(degrees)
+        self.orientation = vec2(int(round(self.orientation.x)), int(round(self.orientation.y)))
         print(self.orientation)
         self.scaleYByFactor(SQUISH_FACTOR_Y)
 

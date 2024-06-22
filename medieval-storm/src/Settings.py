@@ -3,6 +3,8 @@ import math
 
 vec2 = pg.math.Vector2
 
+VEC0 = vec2(0, 0)
+
 RES_2 = vec2(1350, 800)
 RES = WIDTH, HEIGHT = vec2(1920, 1080)
 CENTER = H_WIDTH, H_HEIGHT = RES_2 // 2
@@ -21,3 +23,4 @@ SQUISH_FACTOR_Y = math.cos(math.radians(CAMERA_ANGLE_DEGREES))
 
 # player stuff
 PLAYER_BASE_SPEED = 2
+PLAYER_KEYBOARD_CHECK_DELAY = 70

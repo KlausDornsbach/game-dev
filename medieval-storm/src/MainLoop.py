@@ -50,7 +50,7 @@ def main():
     # pg.key.set_repeat(400, 270)
 
     # this will set a timer to check on keyboard events, so we get every x ms, making it less shaky
-    pg.time.set_timer(KEYBOARD_CHECK, 150)
+    pg.time.set_timer(KEYBOARD_CHECK, PLAYER_KEYBOARD_CHECK_DELAY, loops=1)
 
     # Event loop
     while 1:
@@ -98,6 +98,7 @@ def handle_input(player, world_objects):
     # if keys[pg.K_w] or keys[pg.K_a] or keys[pg.K_s] or keys[pg.K_d]:
     #     player.rotate_player(keys)
 
+    # world object movement and rotation
     for o in world_objects:
         if keys[pg.K_w]:
             pass
@@ -112,18 +113,53 @@ def handle_input(player, world_objects):
             pass
             # player.move((1, 0), 4)
 
-    if pg.event.peek(pg.QUIT):
-        return -1
-    
-    # keyboard events
-    if pg.event.peek(KEYBOARD_CHECK):
-        player.rotate_player(pg.event.get())
-    
     events = pg.event.get()
-    for e in events:
-        if e.type == pg.KEYDOWN or e.type == pg.KEYUP:
-            player.rotate_player(e.type, e.key)
-            pass
+    
+    # player object rotation
+    for event in events:
+        if event.type == pg.QUIT:
+            return -1
+        if event.type == KEYBOARD_CHECK:
+            sum_vec = VEC0
+            if keys[pg.K_w]:
+                sum_vec = vector_add(sum_vec, vec2(0, -1))
+                # player.move((0, -1), 4)
+            if keys[pg.K_a]:
+                sum_vec = vector_add(sum_vec, vec2(-1, 0))
+                # player.move((-1, 0), 4)
+            if keys[pg.K_s]:
+                sum_vec = vector_add(sum_vec, vec2(0, 1))
+                # player.move((0, 1), 4)
+            if keys[pg.K_d]:
+                sum_vec = vector_add(sum_vec, vec2(1, 0))
+
+            if sum_vec != VEC0:
+                player.rotate_player(sum_vec)
+            print()
+            pg.time.set_timer(KEYBOARD_CHECK, PLAYER_KEYBOARD_CHECK_DELAY, loops=1)
+            print(sum_vec)
+
+
+def vector_add(v1, v2):
+    return vec2(v1.x + v2.x, v1.y + v2.y)
+
+    # if pg.event.peek(pg.QUIT):
+    #     return -1
+    
+    # # keyboard events
+    # if pg.event.peek(KEYBOARD_CHECK):
+    #     pass
+    #     # player.rotate_player(pg.event.get())
+    
+    # events = pg.event.get()
+    # for e in events:
+    #     if e.type == pg.KEYDOWN or e.type == pg.KEYUP:
+    #         if e.key == pg.K_j:
+    #             player.rotate(CAMERA_ROTATION_ANGLE)
+    #         if e.key == pg.K_k:
+    #             player.rotate(CAMERA_ROTATION_ANGLE)
+    #         # player.rotate_player(e.type, e.key)
+    #         pass
     
     # if event.type == pg.KEYDOWN:
     #     if event.key == pg.K_j:
