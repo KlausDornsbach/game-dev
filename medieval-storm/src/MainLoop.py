@@ -13,8 +13,11 @@ except ImportError as err:
     print(f"couldn't load module. {err}")
     sys.exit(2)
 
+can_rotate_camera = True
+
 
 KEYBOARD_CHECK = pg.event.custom_type()
+CAMERA_ROTATION_DELAY_OVER = pg.event.custom_type()
 
 def main():
     # Initialise screen
@@ -30,9 +33,7 @@ def main():
     background.fill(BG_COLOR)
 
     # some cool player
-    player_pos = CENTER
-    player_pos[1] += 200
-    player = create_player(screen, player_pos)
+    player = create_player(screen, PLAYER_POS)
 
     # some random enemy
     world_objects = []
@@ -69,6 +70,78 @@ def main():
         pg.display.flip()
 
 
+def handle_input(player, world_objects):
+    events = pg.event.get()
+    keys = pg.key.get_pressed()
+
+    global can_rotate_camera
+    
+    # player object rotation
+    # sum vec stored out for also using in movement
+
+    for event in events:
+        sum_vec = VEC0
+        if event.type == pg.QUIT:
+            return -1
+        
+        if event.type == CAMERA_ROTATION_DELAY_OVER:
+            can_rotate_camera = True
+        
+        if event.type == KEYBOARD_CHECK:
+            pg.time.set_timer(KEYBOARD_CHECK, PLAYER_KEYBOARD_CHECK_DELAY, loops=1)
+
+            # print(can_rotate, keys[pg.K_j])
+
+            if can_rotate_camera and keys[pg.K_j]:
+                print('rotate ->')
+                for o in world_objects:
+                    rotate_on_pivot(o, PLAYER_POS, -45)
+                
+                can_rotate_camera = False
+                pg.time.set_timer(CAMERA_ROTATION_DELAY_OVER, ROTATION_DELAY, loops=1)
+
+
+            if can_rotate_camera and keys[pg.K_k]:
+                for o in world_objects:
+                    rotate_on_pivot(o, PLAYER_POS, 45)
+
+                can_rotate_camera = False
+                pg.time.set_timer(CAMERA_ROTATION_DELAY_OVER, ROTATION_DELAY, loops=1)
+
+
+            if keys[pg.K_w]:
+                sum_vec = vector_add(sum_vec, vec2(0, -1))
+
+            if keys[pg.K_a]:
+                sum_vec = vector_add(sum_vec, vec2(-1, 0))
+
+            if keys[pg.K_s]:
+                sum_vec = vector_add(sum_vec, vec2(0, 1))
+
+            if keys[pg.K_d]:
+                sum_vec = vector_add(sum_vec, vec2(1, 0))
+
+            if sum_vec == VEC0:
+                continue
+
+            # print('here')
+            
+            sum_vec.normalize_ip()
+            player.rotate_player(sum_vec)
+            
+            # world object movement and rotation
+            for o in world_objects:
+                # print('move world')
+                o.move(-sum_vec, player.speed)
+            # print('about to rotate')
+        
+
+            
+
+
+
+#### UTIL FUNCTIONS ####
+
 def create_player(screen, pos):
     player_object = pg.Surface((100, 100), pg.SRCALPHA)
     player_object.fill(PLAYER_COLOR)
@@ -91,89 +164,29 @@ def blit_game_object(object):
     object.screen.blit(object.base_surface, object.base_rect)
 
 
-def handle_input(player, world_objects):
-    keys = pg.key.get_pressed()
-
-    # player rotation on move
-    # if keys[pg.K_w] or keys[pg.K_a] or keys[pg.K_s] or keys[pg.K_d]:
-    #     player.rotate_player(keys)
-
-    # world object movement and rotation
-    for o in world_objects:
-        if keys[pg.K_w]:
-            pass
-            # player.move((0, -1), 4)
-        if keys[pg.K_s]:
-            pass
-            # player.move((0, 1), 4)
-        if keys[pg.K_a]:
-            pass
-            # player.move((-1, 0), 4)
-        if keys[pg.K_d]:
-            pass
-            # player.move((1, 0), 4)
-
-    events = pg.event.get()
+def rotate_on_pivot(object, pivot, degrees):
+    original_pivot = vec2(pivot)
+    print(object.base_rect.center, pivot)
+    obj_center = object.base_rect.center
+    pivot_vector = vector_sub(vec2(obj_center), original_pivot)
+    print(pivot_vector)
     
-    # player object rotation
-    for event in events:
-        if event.type == pg.QUIT:
-            return -1
-        if event.type == KEYBOARD_CHECK:
-            sum_vec = VEC0
-            if keys[pg.K_w]:
-                sum_vec = vector_add(sum_vec, vec2(0, -1))
-                # player.move((0, -1), 4)
-            if keys[pg.K_a]:
-                sum_vec = vector_add(sum_vec, vec2(-1, 0))
-                # player.move((-1, 0), 4)
-            if keys[pg.K_s]:
-                sum_vec = vector_add(sum_vec, vec2(0, 1))
-                # player.move((0, 1), 4)
-            if keys[pg.K_d]:
-                sum_vec = vector_add(sum_vec, vec2(1, 0))
+    object.rotate(degrees)
 
-            if sum_vec != VEC0:
-                player.rotate_player(sum_vec)
-            print()
-            pg.time.set_timer(KEYBOARD_CHECK, PLAYER_KEYBOARD_CHECK_DELAY, loops=1)
-            print(sum_vec)
+    pivot_vector = pivot_vector.rotate(degrees)
+    print('pivot after', pivot_vector)
+    pivot_vector = vector_add(original_pivot, pivot_vector)
+    
+    object.base_rect = object.base_surface.get_rect(center=pivot_vector)
+    print(object.base_rect.center)
 
 
 def vector_add(v1, v2):
     return vec2(v1.x + v2.x, v1.y + v2.y)
 
-    # if pg.event.peek(pg.QUIT):
-    #     return -1
-    
-    # # keyboard events
-    # if pg.event.peek(KEYBOARD_CHECK):
-    #     pass
-    #     # player.rotate_player(pg.event.get())
-    
-    # events = pg.event.get()
-    # for e in events:
-    #     if e.type == pg.KEYDOWN or e.type == pg.KEYUP:
-    #         if e.key == pg.K_j:
-    #             player.rotate(CAMERA_ROTATION_ANGLE)
-    #         if e.key == pg.K_k:
-    #             player.rotate(CAMERA_ROTATION_ANGLE)
-    #         # player.rotate_player(e.type, e.key)
-    #         pass
-    
-    # if event.type == pg.KEYDOWN:
-    #     if event.key == pg.K_j:
-    #         pass
-    #         # player.rotate(CAMERA_ROTATION_ANGLE)
-    #     if event.key == pg.K_k:
-    #         pass
-    #         # player.rotate(CAMERA_ROTATION_ANGLE)
 
-    # player.rotate_player(pressed_keys)
-
-    # for event in events:
-    #     if event.type == pg.QUIT:
-    #         return -1
+def vector_sub(v1, v2):
+    return vec2(v1.x - v2.x, v1.y - v2.y)
 
 
 def load_png(name):

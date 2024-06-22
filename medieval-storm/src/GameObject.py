@@ -3,8 +3,8 @@ from Settings import *
 class GameObject:
     # definitions of objects need a base rectangle, z axis rectangles, y and z components of the rects
     # will be squishified to take into consideration camera angle.
-    def __init__(self, base_surface, screen, pos, base_speed):
-        self.base_speed = base_speed
+    def __init__(self, base_surface, screen, pos, speed):
+        self.speed = speed
         self.base_surface = base_surface
         self.screen = screen
         self.base_rect = base_surface.get_rect(center = pos)
@@ -14,8 +14,8 @@ class GameObject:
         self.scaleYByFactor(SQUISH_FACTOR_Y)
 
 
-    def move(self, vec, modifier = 1):
-        self.base_rect = self.base_rect.move((vec[0]*modifier*self.base_speed, vec[1]*modifier*self.base_speed))
+    def move(self, vec, speed_modifier = 1):
+        self.base_rect = self.base_rect.move((vec[0]*speed_modifier, vec[1]*speed_modifier))
 
 
     def scaleYByFactor(self, factor):
